@@ -1,9 +1,6 @@
 --              AstroNvim Configuration Table
 -- All configuration changes should go inside of the table below
 
--- You can think of a Lua "table" as a dictionary like data structure the
--- normal format is "key = value". These also handle array like data structures
--- where a value with no key simply has an implicit numeric key
 local config = {
 
         -- Configure AstroNvim updates
@@ -18,11 +15,9 @@ local config = {
                 show_changelog = true, -- show the changelog after performing an update
                 auto_reload = false, -- automatically reload and sync packer after a successful update
                 auto_quit = false, -- automatically quit the current session after a successful update
-                -- remotes = { -- easily add new remotes to track
-                --   ["remote_name"] = "https://remote_url.come/repo.git", -- full remote url
-                --   ["remote2"] = "github_user/repo", -- GitHub user/repo shortcut,
-                --   ["remote3"] = "github_user", -- GitHub user assume AstroNvim fork
-                -- },
+                remotes = { -- easily add new remotes to track
+                        ["UserConfig"] = "yolier/astronvim_config", -- GitHub user/repo shortcut,
+                },
         },
 
         -- Set colorscheme to use
@@ -47,6 +42,12 @@ local config = {
                         spell = false, -- sets vim.opt.spell
                         signcolumn = "auto", -- sets vim.opt.signcolumn to auto
                         wrap = false, -- sets vim.opt.wrap
+                        smartindent = true,
+                        swapfile = false,
+                        backup = false,
+                        undodir = os.getenv "HOME" .. "/.vim/undodir",
+                        undofile = true,
+                        updatetime = 50,
                 },
                 g = {
                         mapleader = " ", -- sets vim.g.mapleader
@@ -199,27 +200,42 @@ local config = {
         mappings = {
                 -- first key is the mode
                 n = {
+                        -- Tabs, Buffers, Windows etc.
                         ["<leader>bb"] = { "<cmd>tabnew<cr>", desc = "New tab" },
                         ["<leader>bc"] = { "<cmd>BufferLinePickClose<cr>", desc = "Pick to close" },
                         ["<leader>bj"] = { "<cmd>BufferLinePick<cr>", desc = "Pick to jump" },
                         ["<leader>bt"] = { "<cmd>BufferLineSortByTabs<cr>", desc = "Sort by tabs" },
                         ["<leader>bf"] = { "<cmd>Telescope buffers<cr>", desc = "Search through buffers" },
 
-                        -- Movements
+                        -- Movements & Editing
+                        ["<Up>"] = { "<C-y>" },
+                        ["<Down>"] = { "<C-e>" },
                         ["<C-d>"] = { "<C-d>zz" },
                         ["<C-u>"] = { "<C-u>zz" },
+                        ["n"] = { "nzzzv" },
+                        ["N"] = { "Nzzzv" },
+                        ["J"] = { "mzJ`z" },
+                        ["<leader><leader>u"] = { "<cmd>UndotreeToggle<cr>", desc = "Open UndoTree" },
 
                         -- LSP stuff
-                        ["[d"] = { function() vim.diagnostic.goto_next() end },
-                        ["]d"] = { function() vim.diagnostic.goto_prev() end },
+                        ["[d"] = { function() vim.diagnostic.goto_next() end, desc = "Goto next diagnostic" },
+                        ["]d"] = { function() vim.diagnostic.goto_prev() end, desc = "Goto previous diagnostic" },
+                },
+                v = {
+                        ["J"] = { ":m '>+1<CR>gv=gv" },
+                        ["K"] = { ":m '<-2<CR>gv=gv" },
                 },
                 t = {
                         -- setting a mapping to false will disable it
                         -- ["<esc>"] = false,
                 },
                 i = {
-                        ["<C-h>"] = { function() vim.lsp.buf.signature_help() end }
-                }
+                        ["<C-h>"] = { function() vim.lsp.buf.signature_help() end },
+                        ["<Up>"] = { function() print "ALARM: use --> k <-- " end },
+                        ["<Down>"] = { function() print "ALARM: use --> j <-- " end },
+                        ["<Left>"] = { function() print "ALARM: use --> h <-- " end },
+                        ["<Right>"] = { function() print "ALARM: use --> l <-- " end },
+                },
         },
 
         -- Configure plugins
@@ -231,8 +247,9 @@ local config = {
                         -- Add plugins, the packer syntax without the "use"
                         { "ggandor/lightspeed.nvim" },
                         { "tpope/vim-repeat" },
-                        { "catppuccin/nvim" }
-                        -- { "justinmk/vim-sneak" },
+                        { "catppuccin/nvim" },
+                        { "ionide/Ionide-vim" },
+                        { "mbbill/undotree" },
                 },
                 -- All other entries override the require("<key>").setup({...}) call for default plugins
                 ["null-ls"] = function(config) -- overrides `require("null-ls").setup(config)`
@@ -251,6 +268,17 @@ local config = {
                 end,
                 treesitter = { -- overrides `require("treesitter").setup(...)`
                         ensure_installed = { "lua" },
+                        highlight = { enable = true },
+                        indent = { enable = true },
+                        incremental_selection = {
+                                enable = true,
+                                keymaps = {
+                                        init_selection = "<c-space>",
+                                        node_incremental = "<c-space>",
+                                        scope_incremental = "<c-s>",
+                                        node_decremental = "<c-backspace>",
+                                },
+                        },
                 },
                 -- use mason-lspconfig to configure LSP installations
                 ["mason-lspconfig"] = { -- overrides `require("mason-lspconfig").setup(...)`
@@ -258,10 +286,15 @@ local config = {
                 },
                 -- use mason-null-ls to configure Formatters/Linter installation for null-ls sources
                 ["mason-null-ls"] = { -- overrides `require("mason-null-ls").setup(...)`
-                        -- ensure_installed = { "prettier", "stylua" },
+                        ensure_installed = { "prettier", "stylua", "markdownlint" },
                 },
                 ["mason-nvim-dap"] = { -- overrides `require("mason-nvim-dap").setup(...)`
-                        -- ensure_installed = { "python" },
+                        ensure_installed = {
+                                "gopls",
+                                "eslint-lsp",
+                                "marksman",
+                                "typescript-language-server",
+                        },
                 },
         },
 
@@ -317,7 +350,7 @@ local config = {
                 -- vim.filetype.add {
                 --   extension = {
                 --     foo = "fooscript",
-                --   },
+                --   }
                 --   filename = {
                 --     ["Foofile"] = "fooscript",
                 --   },
